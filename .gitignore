@@ -13,7 +13,7 @@ usb_rawhid.lst
 usb_rawhid.o
 Makefile
 build
-CNC.xcodeproj
+
 Info.plist
 applet
 PkgInfo
@@ -28,3 +28,6 @@ teensy_loader_cli.c
 Teensy_Loader.scpt
 runavarice.sh
 README.md
+Source
+ddcp*
+__*
