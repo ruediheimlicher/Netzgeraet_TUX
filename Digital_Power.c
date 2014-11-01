@@ -12,7 +12,8 @@
 #include <avr/pgmspace.h>
 #include <inttypes.h>
 #include <avr/interrupt.h>
-#define F_CPU 8000000UL  // 8 MHz
+//#define F_CPU 8000000UL  // 8 MHz
+
 #include <util/delay.h>
 #include <stdlib.h>
 #include <string.h>
@@ -30,9 +31,9 @@
 
 //debug LED:
 // set output to VCC, red LED off
-#define LEDOFF PORTD|=(1<<PORTD0)
+#define LEDOFF0 PORTD|=(1<<PORTD0)
 // set output to GND, red LED on
-#define LEDON PORTD&=~(1<<PORTD0)
+#define LEDON0 PORTD&=~(1<<PORTD0)
 // to test the state of the LED
 #define LEDISOFF PORTD&(1<<PORTD0)
 //
@@ -121,7 +122,10 @@ void delay_ms_uartcheck(uint8_t ms)
 #ifdef USE_UART
       if(uart_has_one_line==0 && uart_getchar_isr_noblock(&c))
       {
-         if (c=='\n') c='\r'; // Make unix scripting easier. A terminal, even under unix, does not send \n
+         if (c=='\n')
+         {
+            c='\r'; // Make unix scripting easier. A terminal, even under unix, does not send \n
+         }
          // ignore any white space and characters we do not use:
          if (!(c=='\b'||(c>='0'&&c<='z')||c==0x7f||c=='\r'))
          {
@@ -218,6 +222,7 @@ static void int_to_dispstr(uint16_t inum,char *outbuf,int8_t decimalpoint_pos){
       }
    }
 }
+
 
 static void store_permanent(void)
 {
@@ -389,7 +394,11 @@ int main(void)
 #ifndef USE_UART
    // debug led, you can not have an LED if you use the uart
    DDRD|= (1<<DDD0); // LED, enable PD0, LED as output
-   LEDOFF;
+   
+   DDRD|= (1<<DDD1); // LED, enable PD1, LED as output
+
+   
+   LEDOFF0;
 #endif
    
    init_dac();
@@ -410,13 +419,14 @@ int main(void)
 #endif
    sei();
    init_analog();
+   DDRD|= (1<<DDD1); // LED, enable PD1, LED as output
    while (1)
    {
       i++;
       // due to electrical interference we can get some
       // garbage onto the display especially if the power supply
       // source is not stable enough. We can remedy it a bit in
-      // software with an ocasional reset:
+      // software with an occasional reset:
       if (i==50)
       { // not every round to avoid flicker
          lcd_reset();
@@ -433,7 +443,7 @@ int main(void)
       int_to_dispstr(measured_val[1],out_buf,1);
 #endif
       lcd_puts(out_buf);
-      lcd_puts("V [");
+      lcd_puts("V  [");
 #ifdef DEBUGDISP
       itoa(set_val_adcUnits[1],out_buf,10);
 #else
@@ -460,7 +470,7 @@ int main(void)
       int_to_dispstr(measured_val[0],out_buf,2);
 #endif
       lcd_puts(out_buf);
-      lcd_puts("A [");
+      lcd_puts("A  [");
 #ifdef DEBUGDISP
       itoa(set_val_adcUnits[0],out_buf,10);
 #else

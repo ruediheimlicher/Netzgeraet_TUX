@@ -8,7 +8,8 @@
 #include <avr/io.h>
 
 // this dac can do 12 bit resolution: bit 0-4=pwm, bit 5-11=R-2R ladder
-void dac(uint16_t value){
+void dac(uint16_t value)
+{
         //OCR1AH=0;
    OCR1AL=value&0x1F; // lower 5 bits
 	value=value>>(5-2);
@@ -29,11 +30,13 @@ void init_dac(void)
 {
 	// enable PD2 PD3 PD4 PD5 PD6 PD7 PB0 as output (PD2=LSB of R2R-leadder)
 	DDRD|= 0xfc; // output
-	PORTD &= PORTD&0x3; //  zero volt on PD2..PD7
-	DDRB|= (1<<DDB0);
-	PORTB &= ~(1<<PINB0);
+	PORTD &= PORTD&0x3; //  zero volt on PD2..PD7, HI on PD 0..1
+   
+	DDRB|= (1<<DDB0);// PB0 output
+	PORTB &= ~(1<<PINB0);//  zero volt on PB0
 	//
-	DDRB|= (1<<DDB1); // PB1 output
+	
+   DDRB|= (1<<DDB1); // PB1 output, OC1A
 	// set up of Pulse Width Modulation (PWM)
 	TCNT1H=0; // counter to zero, high byte first
 	TCNT1L=0;

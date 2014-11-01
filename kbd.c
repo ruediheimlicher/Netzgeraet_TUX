@@ -5,7 +5,7 @@
 * read the keyboard
 **********************************************/
 #include <avr/io.h>
-#define F_CPU 8000000UL  // 4 MHz
+//#define F_CPU 8000000UL  // 4 MHz
 #include <util/delay.h>
 
 

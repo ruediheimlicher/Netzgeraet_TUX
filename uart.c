@@ -9,7 +9,7 @@
 #include <avr/io.h>
 #include <avr/pgmspace.h>
 #include "uart.h"
-#define F_CPU 8000000UL  // 8 MHz
+#define F_CPU 7372800  // 8 MHz
 
 // a receiver stack:
 #define SENDSTACKSIZE 12
@@ -19,7 +19,8 @@ static uint8_t stackpointer_start=0;
 
 void uart_init(void) 
 {
-        unsigned int baud=51;   // 9600 baud at 8MHz
+   //unsigned int baud=51;   // 9600 baud at 8MHz
+   unsigned int baud=47;   // 9600 baud at 7.37MHz
 #ifdef VAR_88CHIP
         UBRR0H=(unsigned char) (baud >>8);
         UBRR0L=(unsigned char) (baud & 0xFF);

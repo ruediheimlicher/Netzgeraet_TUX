@@ -24,9 +24,9 @@
 
 //debug LED:
 // set output to VCC, red LED off
-#define LEDOFF PORTD|=(1<<PORTD0)
+#define LEDOFF0 PORTD|=(1<<PORTD0)
 // set output to GND, red LED on
-#define LEDON PORTD&=~(1<<PORTD0)
+#define LEDON0 PORTD&=~(1<<PORTD0)
 // to test the state of the LED
 #define LEDISOFF PORTD&(1<<PORTD0)
 
@@ -50,7 +50,7 @@ int main(void)
 	int8_t dac_dir=0;
 	char out_buf[21];
 	DDRD|= (1<<DDD0); // LED, enable PD0, LED as output
-	LEDOFF;
+	LEDOFF0;
 	init_dac();
 	lcd_init();
 	lcd_clrscr();
@@ -87,14 +87,14 @@ int main(void)
 			// u+ pressed
 			lcd_puts_p(PSTR("up"));
 			dac_dir=1;
-			LEDOFF;
+			//LEDOFF0;
 		}
 		if (cnt<1){
 			lcd_clrscr();
 			// u- pressed
 			lcd_puts_p(PSTR("down"));
 			dac_dir=-1;
-			LEDON;
+			//LEDON0;
 		}
 		if (check_store_button()){
 			lcd_clrscr();
@@ -109,14 +109,14 @@ int main(void)
 			// u+ pressed
 			lcd_puts_p(PSTR("up"));
 			dac_dir=1;
-			LEDOFF;
+			//LEDOFF0;
 		}
 		if (cnt<1){
 			lcd_clrscr();
 			// u- pressed
 			lcd_puts_p(PSTR("down"));
 			dac_dir=-1;
-			LEDON;
+			//LEDON0;
 		}
 		if (check_store_button()){
 			lcd_clrscr();
