@@ -82,7 +82,7 @@ extern void lcd_command(uint8_t cmd);
 extern void lcd_gotoxy(uint8_t x, uint8_t y); /* line 1 y=0, line 2 y=1 */
 extern void lcd_putc(char c); /* print character at current cursor position */
 extern void lcd_puts(const char *s); /* print string on lcd (no auto linefeed) */
-
+extern void lcd_putint(uint8_t zahl);
 /* if you hard code a string in the program then you need to decalare
 * it like: char *str =PSTR("hello world");
 * and then use lcd_puts_p(str);*/

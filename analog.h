@@ -14,5 +14,5 @@ extern int16_t getanalogresult(uint8_t channel);
 extern void set_target_adc_val(uint8_t item,int16_t val);
 extern uint8_t is_current_limit(void); 
 extern int16_t get_dacval(void);
-
+extern uint8_t get_currentcontrol(void);
 #endif /* ANALOG_H */

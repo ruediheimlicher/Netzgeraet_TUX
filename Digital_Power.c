@@ -109,6 +109,7 @@ static void update_controlloop_targets(void)
    // voltage
    measured_val[1]=adc_u_to_disp(getanalogresult(1),measured_val[0]);
    set_val_adcUnits[1]=disp_u_to_adc(set_val[1])+disp_i_to_u_adc_offset(measured_val[0]);
+   
    set_target_adc_val(1,set_val_adcUnits[1]);
 }
 
@@ -390,7 +391,7 @@ int main(void)
    char out_buf[21];
    uint8_t i=0;
    uint8_t ilimit=0;
-   
+    uint8_t currcontrol=0;
 #ifndef USE_UART
    // debug led, you can not have an LED if you use the uart
    DDRD|= (1<<DDD0); // LED, enable PD0, LED as output
@@ -435,7 +436,7 @@ int main(void)
       lcd_home();
       update_controlloop_targets();
       ilimit=is_current_limit();
-      
+      currcontrol = get_currentcontrol();
       // voltage
 #ifdef DEBUGDISP
       itoa(getanalogresult(1),out_buf,10);
@@ -487,7 +488,8 @@ int main(void)
       {
          lcd_puts("   ");
       }
-      
+      lcd_gotoxy(16,0);
+      lcd_putint(currcontrol);
       update_controlloop_targets();
       
       // the buttons must be responsive but they must not

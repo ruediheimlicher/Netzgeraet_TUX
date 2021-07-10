@@ -21,12 +21,12 @@
 #define ADC_REF 2.56
 
 // the divider R3/R4 [(R3+R4)/R4] (calibrate the voltmeter, lower value=higher output)
-#define U_DIVIDER 10.75
+#define U_DIVIDER 11.65
 
 // the shunt for current measurement, you can calibrate here the 
 // amperemeter.
 // 2*1.5Ohm 3W=0.75:
-#define I_RESISTOR 0.79
+#define I_RESISTOR 0.74 // 20200304 Widerstaende neu 2*1.5 Ohm //0.79
 // short circuit protection limit (do not change unless you know what you do):
 // 850=2.85A= (2.85A * 1023 * 0.75 / 2.56 )
 #define SH_CIR_PROT 850

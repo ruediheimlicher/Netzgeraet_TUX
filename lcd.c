@@ -14,7 +14,7 @@ Copyright: GPL V2
 *****************************************************************************/
 #include <avr/io.h>
 #include <avr/pgmspace.h>
-#define F_CPU 12000000UL  // we use 8 MHz but we set it to 12 to increase delay and 
+//#define F_CPU 12000000UL  // we use 8 MHz but we set it to 12 to increase delay and
                           // make it work better with slow LCDs
 #include <util/delay.h>
 
@@ -197,6 +197,20 @@ void lcd_gotoxy(uint8_t x, uint8_t y)
 
 }                                /* lcd_gotoxy */
 
+void lcd_putint(uint8_t zahl)
+{
+   char string[4];
+   int8_t i;                             // schleifenzähler
+   
+   string[3]='\0';                       // String Terminator
+   for(i=2; i>=0; i--) 
+   {
+      string[i]=(zahl % 10) +'0';         // Modulo rechnen, dann den ASCII-Code von '0' addieren
+      zahl /= 10;
+   }
+   lcd_puts(string);
+}
+
 
 
 void lcd_putc(char c)
@@ -271,4 +285,52 @@ void lcd_init(void)
 
         /* from now the lcd only accepts 4 bit I/O, we can use lcd_command() */
         lcd_reset();
+}
+
+
+void lcd_CGRAMInit_Mode(void)
+{
+   uint8_t i=0;
+   //lcd_load_byte(0x48);
+  // lcd_send_cmd();
+   lcd_command(0x48);
+  // lcd_putc(char c)
+   
+   for (i=0;i<3;i++)	//				beide h	Tag voll, Nacht off			- -	char 1
+   {
+      lcd_putc(0x1B);
+      //lcd_send_char();
+   }
+   lcd_putc(0x00);//freie Linie
+   for (i=3;i<6;i++)	//
+   {
+      lcd_putc(0x00);
+      //lcd_send_char();
+   }
+   
+   lcd_putc(0x00);//freie Linie
+   //lcd_send_char();
+   
+   for (i=0;i<3;i++)	//				beide h	Tag voll, 2. h Nacht red			- -	char 2
+   {
+      lcd_putc(0x1B);
+     // lcd_send_char();
+   }
+   lcd_putc(0x00);//freie Linie
+  // lcd_send_char();
+   for (i=3;i<6;i++)	//
+   {
+      lcd_putc(0x01+i%2);
+      //lcd_send_char();
+   }
+   
+   lcd_putc(0x00);//freie Linie
+  // lcd_send_char();
+   
+   
+   
+   
+   
+   lcd_command(0x80);
+      
 }

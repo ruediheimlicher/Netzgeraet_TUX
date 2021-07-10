@@ -92,6 +92,12 @@ uint8_t is_current_limit(void)
 	return(0);
 }
 
+uint8_t get_currentcontrol(void)
+{
+   return currentcontrol;
+}
+
+
 /* set the target adc value for the control loop
  * values for item: 1 = u, 0 = i, units must be of the same as the values 
  * from the dac.
@@ -135,7 +141,7 @@ static void control_loop(void)
 		if (analog_result[1]>target_val[1]) // Ausgangsspannung ist höher als am DAC eingestellt
       {
 			// oh, voltage too high, get out of current control:
-			tmp =- 20;
+			tmp = -20;
 			currentcontrol=0; // U control
 		}
 	}
@@ -203,70 +209,68 @@ static void control_loop(void)
 //SIGNAL(SIG_ADC) {
 ISR(ADC_vect)
 {
-  // PORTD|= (1<<DDD1);
-	uint8_t i=0;
-	uint8_t adlow;
-	int16_t currentadc;
-	static uint8_t channel=0; 
-	static uint8_t chpos=0;
-	// raw 10bit values:
-        static int16_t raw_analog_u_result[8];  
-        int16_t new_analog_u_result=0;
-	adlow=ADCL; // read low first !! 
-	currentadc=(ADCH<<8)|adlow;
-	// toggel the channel between 0 an 1. This will however
-	// not effect the next conversion as that one is already
-	// ongoing.
+   uint8_t i=0;
+   uint8_t adlow;
+   int16_t currentadc;
+   static uint8_t channel=0; 
+   static uint8_t chpos=0;
+   // raw 10bit values:
+   static int16_t raw_analog_u_result[8];  
+   int16_t new_analog_u_result=0;
+   adlow=ADCL; // read low first !! 
+   currentadc=(ADCH<<8)|adlow;
+   // toggel the channel between 0 an 1. This will however
+   // not effect the next conversion as that one is already
+   // ongoing.
    //PORTD&= ~(1<<DDD1);
-	channel^=1;
-	// 2.56V ref
-	ADMUX=(1<<REFS1)|(1<<REFS0)|channel;
-	// channel=1 = U, channel=0 = I
-	if (channel==1) // Spannung messen
+   channel^=1;
+   // 2.56V ref
+   ADMUX=(1<<REFS1)|(1<<REFS0)|channel;
+   // channel=1 = U, channel=0 = I
+   if (channel==1) // Spannung messen
    {
       LEDON1;
-		raw_analog_u_result[chpos]=currentadc;
-		//
-		// we do 4 bit oversampling to get 11bit ADC resolution
-		chpos=(chpos+1)%4; // rotate over 4 
-		//analog_result[1]=0;
-		while(i<4)
+      raw_analog_u_result[chpos]=currentadc;
+      //
+      // we do 4 bit oversampling to get 11bit ADC resolution
+      chpos=(chpos+1)%4; // rotate over 4 
+      while(i<4) 
       {
-			new_analog_u_result+=raw_analog_u_result[i];
-			i++;
-		}
-		new_analog_u_result=new_analog_u_result>>1; // 11bit
-		// mean value:
-		analog_result[1]=(new_analog_u_result+analog_result[1])/2;
+         new_analog_u_result+=raw_analog_u_result[i];// Werte aufsummieren
+         i++;
+      }
+      new_analog_u_result=new_analog_u_result>>1; // /2, 11bit
+      // mean value:
+      analog_result[1]=(new_analog_u_result+analog_result[1])/2;
       LEDOFF1;
-	}
+   }
    else // channel==0, Strom messen
    {
       LEDON0;
-		analog_result[0]=currentadc; // 10bit
+      analog_result[0]=currentadc; // 10bit
       LEDOFF0;
-	}
+   }
    
-	// short circuit protection does not use the over sampling results
-	// for speed reasons.
-	// short circuit protection, current is 10bit ADC
-	if (channel==0 && currentadc > SH_CIR_PROT)
+   // short circuit protection does not use the over sampling results
+   // for speed reasons.
+   // short circuit protection, current is 10bit ADC
+   if (channel==0 && currentadc > SH_CIR_PROT)
    {
-		dac_val=400;
-		dac(dac_val);
-		currentcontrol=20;
-		return;
-	}
-        //
-	if (channel==1)
+      dac_val=400;
+      dac(dac_val);
+      currentcontrol=20;
+      return;
+   }
+   //
+   if (channel==1)
    {
-		// only after full measurement cycle
-		control_loop();
-	}
+      // only after full measurement cycle
+      control_loop();
+   }
    else
    {
-		uart_poll_getchar_isr();
-	}
-	// end of interrupt handler
+      uart_poll_getchar_isr();
+   }
+   // end of interrupt handler
 }
 
