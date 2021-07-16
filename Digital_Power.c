@@ -36,6 +36,7 @@
 #define LEDON0 PORTD&=~(1<<PORTD0)
 // to test the state of the LED
 #define LEDISOFF PORTD&(1<<PORTD0)
+
 //
 // the units are display units and work as follows: 100mA=10 5V=50
 // The function int_to_dispstr is used to convert the intenal values
@@ -108,6 +109,7 @@ static void update_controlloop_targets(void)
    set_target_adc_val(0,set_val_adcUnits[0]);
    // voltage
    measured_val[1]=adc_u_to_disp(getanalogresult(1),measured_val[0]);
+   
    set_val_adcUnits[1]=disp_u_to_adc(set_val[1])+disp_i_to_u_adc_offset(measured_val[0]);
    
    set_target_adc_val(1,set_val_adcUnits[1]);
@@ -399,7 +401,7 @@ int main(void)
    DDRD|= (1<<DDD1); // LED, enable PD1, LED as output
 
    
-   LEDOFF0;
+   //LEDOFF0;
 #endif
    
    init_dac();
@@ -415,12 +417,14 @@ int main(void)
       if (set_val[0]<0) set_val[0]=0;
       if (set_val[1]<0) set_val[1]=0;
    }
+   STROMEND;
 #ifdef USE_UART
    uart_init();
 #endif
    sei();
    init_analog();
    DDRD|= (1<<DDD1); // LED, enable PD1, LED as output
+   
    while (1)
    {
       i++;
@@ -488,8 +492,12 @@ int main(void)
       {
          lcd_puts("   ");
       }
+      /*
       lcd_gotoxy(16,0);
-      lcd_putint(currcontrol);
+      lcd_putint12(target_val[1]);
+      lcd_gotoxy(16,1);
+      lcd_putint12(analog_result[1]);
+       */
       update_controlloop_targets();
       
       // the buttons must be responsive but they must not

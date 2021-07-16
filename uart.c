@@ -9,7 +9,7 @@
 #include <avr/io.h>
 #include <avr/pgmspace.h>
 #include "uart.h"
-#define F_CPU 8000000  // 8 MHz
+//#define F_CPU 8000000  // 8 MHz
 
 // a receiver stack:
 #define SENDSTACKSIZE 12

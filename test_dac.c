@@ -24,11 +24,11 @@
 
 //debug LED:
 // set output to VCC, red LED off
-#define LEDOFF0 PORTD|=(1<<PORTD0)
+//#define LEDOFF0 PORTD|=(1<<PORTD0)
 // set output to GND, red LED on
-#define LEDON0 PORTD&=~(1<<PORTD0)
+//#define LEDON0 PORTD&=~(1<<PORTD0)
 // to test the state of the LED
-#define LEDISOFF PORTD&(1<<PORTD0)
+//#define LEDISOFF PORTD&(1<<PORTD0)
 
 void delay_ms(uint16_t ms)
 /* delay for a minimum of <ms> */

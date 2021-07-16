@@ -154,7 +154,7 @@ static void control_loop(void)
 		// we come here to voltage control. We must slowly
 		// count up.
       
-		tmp=1+ target_val[1]  - analog_result[1]; // voltage diff
+		tmp=1+ target_val[1]  - analog_result[1] ; // voltage diff
 		if (currentcontrol)
       {
 			currentcontrol--;
@@ -229,7 +229,8 @@ ISR(ADC_vect)
    // channel=1 = U, channel=0 = I
    if (channel==1) // Spannung messen
    {
-      LEDON1;
+ //     LEDON1;
+      STROMEND;
       raw_analog_u_result[chpos]=currentadc;
       //
       // we do 4 bit oversampling to get 11bit ADC resolution
@@ -242,13 +243,14 @@ ISR(ADC_vect)
       new_analog_u_result=new_analog_u_result>>1; // /2, 11bit
       // mean value:
       analog_result[1]=(new_analog_u_result+analog_result[1])/2;
-      LEDOFF1;
+  //    LEDOFF1;
    }
    else // channel==0, Strom messen
    {
-      LEDON0;
+      //LEDON0;
+      STROMSTART;
       analog_result[0]=currentadc; // 10bit
-      LEDOFF0;
+      //LEDOFF0;
    }
    
    // short circuit protection does not use the over sampling results
