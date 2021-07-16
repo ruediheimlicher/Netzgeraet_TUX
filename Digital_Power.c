@@ -12,7 +12,7 @@
 #include <avr/pgmspace.h>
 #include <inttypes.h>
 #include <avr/interrupt.h>
-//#define F_CPU 8000000UL  // 8 MHz
+#define F_CPU 8000000UL  // 8 MHz
 
 #include <util/delay.h>
 #include <stdlib.h>
