@@ -11,8 +11,8 @@
 #ifndef CAL_HW_H
 #define CAL_HW_H
 
-#define STROMEND PORTD|=(1<<PORTD0) // End Stromregelung
-#define STROMSTART PORTD&=~(1<<PORTD0) // Beginn Stromregelung
+//#define STROMEND PORTD|=(1<<PORTD1) // End Stromregelung
+//#define STROMSTART PORTD&=~(1<<PORTD1) // Beginn Stromregelung
 
 
 /* ================= uncomment this section for the model 22V 2.5A */
@@ -46,7 +46,7 @@
 #define ADC_REF 2.56
 
 // the divider R3/R4 [(R3+R4)/R4], you can calibrate here the voltmeter:
-#define U_DIVIDER 11.60
+#define U_DIVIDER 11.58
 
 // the shunt for current measurement, you can calibrate here the 
 // amperemeter.

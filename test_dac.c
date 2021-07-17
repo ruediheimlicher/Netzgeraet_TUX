@@ -14,7 +14,7 @@
 #include <avr/io.h>
 #include <avr/pgmspace.h>
 #include <inttypes.h>
-#define F_CPU 8000000UL  // 8 MHz
+//#define F_CPU 8000000UL  // 8 MHz
 #include <util/delay.h>
 #include "dac.h"
 #include "lcd.h"
@@ -49,7 +49,7 @@ int main(void)
 	int16_t cnt;
 	int8_t dac_dir=0;
 	char out_buf[21];
-	DDRD|= (1<<DDD0); // LED, enable PD0, LED as output
+//	DDRD|= (1<<DDD0); // LED, enable PD0, LED as output
 	LEDOFF0;
 	init_dac();
 	lcd_init();

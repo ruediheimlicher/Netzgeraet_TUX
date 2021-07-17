@@ -14,7 +14,7 @@
 #include <avr/io.h>
 #include <avr/pgmspace.h>
 #include <inttypes.h>
-#define F_CPU 8000000UL  // 8 MHz
+//#define F_CPU 8000000UL  // 8 MHz
 #include <util/delay.h>
 #include "lcd.h"
 #include "kbd.h"

@@ -45,8 +45,9 @@ uint8_t check_u_button(int16_t *u)
 	PORTB|=(1<<PORTB2); // to vcc
 	PORTC|=(1<<PORTC5); // to vcc
 	kbd_wait();
-	if (bit_is_clear(PINB,PINB5)){
-		(*u)++;
+	if (bit_is_clear(PINB,PINB5))
+   {
+ 		(*u)++;
 		return(1);
 	}
 	// check U- button:

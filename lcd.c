@@ -245,6 +245,36 @@ void lcd_puts(const char *s)
 
 }
 
+void lcd_puthex(uint8_t zahl)
+{
+  //char string[5];
+  char string[3];
+  uint8_t l,h;                             // schleifenzähler
+  
+  string[2]='\0';                       // String Terminator
+  l=(zahl % 16);
+  if (l<10)
+  string[1]=l +'0';  
+  else
+  {
+  l%=10;
+  string[1]=l + 'A'; 
+  
+  }
+  zahl /=16;
+  h= zahl % 16;
+  if (h<10)
+  string[0]=h +'0';  
+  else
+  {
+  h%=10;
+  string[0]=h + 'A'; 
+  }
+  
+  
+  lcd_puts(string);
+}
+
 
 void lcd_puts_p(const char *progmem_s ) // note this is how you would declare a variable: const char str_pstr[] PROGMEM = "FLASH STRING";
 /* print string from program memory on lcd  */

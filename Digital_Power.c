@@ -12,7 +12,8 @@
 #include <avr/pgmspace.h>
 #include <inttypes.h>
 #include <avr/interrupt.h>
-#define F_CPU 8000000UL  // 8 MHz
+#define F_CPU 8000000  
+// 8 MHz
 
 #include <util/delay.h>
 #include <stdlib.h>
@@ -31,12 +32,17 @@
 
 //debug LED:
 // set output to VCC, red LED off
-#define LEDOFF0 PORTD|=(1<<PORTD0)
+//#define LEDOFF0 PORTD|=(1<<PORTD0)
 // set output to GND, red LED on
-#define LEDON0 PORTD&=~(1<<PORTD0)
+//#define LEDON0 PORTD&=~(1<<PORTD0)
 // to test the state of the LED
-#define LEDISOFF PORTD&(1<<PORTD0)
+//#define LEDISOFF PORTD&(1<<PORTD0)
+volatile uint8_t status = 0;
+#define STROMREGPIN 1 // Output, HI wenn Stromregelung
+# define STROMREGBIT 1 // status
 
+#define OFFPIN 0     // Input, HI fuer OFF 
+# define OFFBIT 2 // status
 //
 // the units are display units and work as follows: 100mA=10 5V=50
 // The function int_to_dispstr is used to convert the intenal values
@@ -105,14 +111,27 @@ static void update_controlloop_targets(void)
 {
    // current
    measured_val[0]=adc_i_to_disp(getanalogresult(0));
+if(status & (1<<OFFBIT))
+   {
+      set_val_adcUnits[0]=0;
+   } 
+   else
+   {
    set_val_adcUnits[0]=disp_i_to_adc(set_val[0]);
+   }
    set_target_adc_val(0,set_val_adcUnits[0]);
    // voltage
    measured_val[1]=adc_u_to_disp(getanalogresult(1),measured_val[0]);
    
-   set_val_adcUnits[1]=disp_u_to_adc(set_val[1])+disp_i_to_u_adc_offset(measured_val[0]);
-   
+   int16_t sum1 = disp_u_to_adc(set_val[1])+disp_i_to_u_adc_offset(measured_val[0]);
+   if (sum1 > 0x7FF)
+   {
+      sum1 = 0x7FF;
+   }
+   //set_val_adcUnits[1]=disp_u_to_adc(set_val[1])+disp_i_to_u_adc_offset(measured_val[0]);
+   set_val_adcUnits[1] = sum1;
    set_target_adc_val(1,set_val_adcUnits[1]);
+
 }
 
 void delay_ms_uartcheck(uint8_t ms)
@@ -355,6 +374,7 @@ static uint8_t check_buttons(void)
       uart_sendchar(']');
       if (is_current_limit())
       {
+         // Meldung an Thermometer, HI
          uart_sendchar('I');
       }else{
          uart_sendchar('U');
@@ -393,14 +413,15 @@ int main(void)
    char out_buf[21];
    uint8_t i=0;
    uint8_t ilimit=0;
-    uint8_t currcontrol=0;
+   uint8_t currcontrol=0;
+   
+   
 #ifndef USE_UART
    // debug led, you can not have an LED if you use the uart
-   DDRD|= (1<<DDD0); // LED, enable PD0, LED as output
+ //  DDRD|= (1<<DDD0); // LED, enable PD0, LED as output
    
-   DDRD|= (1<<DDD1); // LED, enable PD1, LED as output
+ //  DDRD|= (1<<DDD1); // LED, enable PD1, LED as output
 
-   
    //LEDOFF0;
 #endif
    
@@ -417,14 +438,20 @@ int main(void)
       if (set_val[0]<0) set_val[0]=0;
       if (set_val[1]<0) set_val[1]=0;
    }
-   STROMEND;
+  // STROMEND;
 #ifdef USE_UART
-   uart_init();
+  // uart_init();
 #endif
-   sei();
-   init_analog();
-   DDRD|= (1<<DDD1); // LED, enable PD1, LED as output
    
+    sei();
+   init_analog();
+   
+   DDRD |= (1<<STROMREGPIN); //Ausgang fuer Stromreg, active HI
+   PORTD &= ~(1<<STROMREGPIN); // LO
+
+   DDRD |= (1<<OFFPIN); //Eingang fuer OFF, active HI
+   PORTD &= ~(1<<OFFPIN); // LO   
+
    while (1)
    {
       i++;
@@ -432,15 +459,58 @@ int main(void)
       // garbage onto the display especially if the power supply
       // source is not stable enough. We can remedy it a bit in
       // software with an occasional reset:
+      if (i%4 == 0)
+      {
+         /*
+         lcd_gotoxy(16,0);
+         lcd_putint12(target_val[1]);
+         lcd_gotoxy(16,1);
+         lcd_putint12(analog_result[1]);
+          */
+         /*
+         if (status & (1<<OFFBIT))
+         {
+            lcd_gotoxy(16,0);
+            //lcd_puthex(status);
+            lcd_puts("OFF");
+         }
+         else
+         {
+            lcd_gotoxy(16,0);
+            //lcd_puthex(status);
+            lcd_puts("   ");
+         }
+*/
+      }
       if (i==50)
       { // not every round to avoid flicker
          lcd_reset();
          i=0;
+         
+ 
       }
       lcd_home();
+      if (PIND &= (1<<OFFPIN))
+      {
+         status |= (1<<OFFBIT);
+      }
+      else
+      {
+         status &= ~(1<<OFFBIT);
+      }
       update_controlloop_targets();
       ilimit=is_current_limit();
       currcontrol = get_currentcontrol();
+      if ( currcontrol)
+      {
+         PORTD |= (1<<STROMREGPIN); // HI, Stromregelung
+         status |= (1<<STROMREGBIT);
+      }
+      else
+      {
+         PORTD &= ~(1<<STROMREGPIN); // LO
+         status &= ~(1<<STROMREGBIT);
+      }
       // voltage
 #ifdef DEBUGDISP
       itoa(getanalogresult(1),out_buf,10);
@@ -452,10 +522,12 @@ int main(void)
 #ifdef DEBUGDISP
       itoa(set_val_adcUnits[1],out_buf,10);
 #else
+      
       int_to_dispstr(set_val[1],out_buf,1);
 #endif
       lcd_puts(out_buf);
       lcd_putc(']');
+      //lcd_putint12(set_val[1]);
       delay_ms_uartcheck(1); // check for uart without delay
       if (!ilimit)
       {
@@ -466,7 +538,6 @@ int main(void)
       {
          lcd_puts("   ");
       }
-      
       // current
       lcd_gotoxy(0,1);
 #ifdef DEBUGDISP
@@ -492,7 +563,7 @@ int main(void)
       {
          lcd_puts("   ");
       }
-      /*
+       /*
       lcd_gotoxy(16,0);
       lcd_putint12(target_val[1]);
       lcd_gotoxy(16,1);
@@ -532,6 +603,7 @@ int main(void)
          else
          {
             bpress++;
+            
             delay_ms_uartcheck(180);
             delay_ms_uartcheck(180);
             delay_ms_uartcheck(180);

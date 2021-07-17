@@ -16,15 +16,15 @@
 
 //debug LED:
 // set output to VCC, red LED off
-#define LEDOFF0 PORTD|=(1<<PORTD0)
+//#define LEDOFF0 PORTD|=(1<<PORTD0)
 // set output to GND, red LED on
-#define LEDON0 PORTD&=~(1<<PORTD0)
+//#define LEDON0 PORTD&=~(1<<PORTD0)
 // to test the state of the LED
-#define LEDISOFF PORTD&(1<<PORTD0)
+//#define LEDISOFF PORTD&(1<<PORTD0)
 
-#define LEDOFF1 PORTD|=(1<<PORTD1)
+//#define LEDOFF1 PORTD|=(1<<PORTD1)
 // set output to GND, red LED on
-#define LEDON1 PORTD&=~(1<<PORTD1)
+//#define LEDON1 PORTD&=~(1<<PORTD1)
 // to test the state of the LED
 
 
@@ -105,6 +105,7 @@ uint8_t get_currentcontrol(void)
 void set_target_adc_val(uint8_t item,int16_t val) 
 {
 	// here we can directly write to target_val 
+   
 	target_val[item]=val;
 }
 
@@ -116,89 +117,73 @@ int16_t getanalogresult(uint8_t channel)
 // the control loop changes the dac:
 static void control_loop(void)
 {
-	int16_t tmp;
-   //LEDON0;
-   
-   // Data-Array's [2]
-   // target_val: int value that is requested (control loop calibrates to this).
-   // analog_result: adc measurement results (11bit ADC):
-   
-	tmp=target_val[0] - analog_result[0]; // current diff
-	if (tmp <0) // Spannungsabfall an Shunt ist zu gross
+   int16_t tmp;
+   tmp=target_val[0] - analog_result[0]; // current diff
+   if (tmp <0)
    {
-		// ** current control:
-		//
-		// stay in current control if we are
-		// close to the target. We never regulate
-		// the difference down to zero otherweise
-		// we would suddenly hop to voltage control
-		// and then back to current control. Permanent
-		// hopping would lead to oscillation and current
-		// spikes.
-		if (tmp>-2) tmp=0; // Differenz ignorieren
-		currentcontrol=10; // I control
-      
-		if (analog_result[1]>target_val[1]) // Ausgangsspannung ist höher als am DAC eingestellt
+      // ** current control:
+      //
+      // stay in current control if we are
+      // close to the target. We never regulate
+      // the difference down to zero otherweise
+      // we would suddenly hop to voltage control
+      // and then back to current control. Permanent
+      // hopping would lead to oscillation and current
+      // spikes.
+      if (tmp>-2) tmp=0; // Differenz ignorieren
+      currentcontrol=10; // I control
+      if (analog_result[1]>target_val[1])  // Ausgangsspannung ist höher als am DAC eingestellt
+
       {
-			// oh, voltage too high, get out of current control:
-			tmp = -20;
-			currentcontrol=0; // U control
-		}
-	}
+         // oh, voltage too high, get out of current control:
+         tmp=-20;
+         currentcontrol=0; // U control
+      }
+   }
    else
    {
-		// ** voltage control:
-		//
-		// if we are in current control then we can only go
-		// down (tmp is negative). To increase the current
-		// we come here to voltage control. We must slowly
-		// count up.
+      // ** voltage control:
+      //
+      // if we are in current control then we can only go
+      // down (tmp is negative). To increase the current
+      // we come here to voltage control. We must slowly
+      // count up.
+      tmp=1+ target_val[1]  - analog_result[1]; // voltage diff
       
-		tmp=1+ target_val[1]  - analog_result[1] ; // voltage diff
-		if (currentcontrol)
+      if (currentcontrol)
       {
-			currentcontrol--;
-			// do not go up immediately after we came out of current control:
-			if (tmp>0)
-         {
-            tmp=0;
-         }
-		}
-	}
-	if (tmp> -3 && tmp<4)
-   { // avoid LSB bouncing if we are close
-		tmp=0;
-	}
-   
-   //LEDOFF0;
-	if (tmp==0) return; // nothing to change
-   
-	// put a cap on increase
-	if (tmp>1)
+         currentcontrol--;
+         // do not go up immediately after we came out of current control:
+         if (tmp>0) tmp=0;
+      }
+   }
+   if (tmp> -3 && tmp<4){ // avoid LSB bouncing if we are close
+      tmp=0;
+   }
+   if (tmp==0) return; // nothing to change
+   // put a cap on increase
+   if (tmp>1)
    {
-		tmp=1;
-	}
-	// put a cap on decrease
-	if (tmp<-200)
+      tmp=1;
+   }
+   // put a cap on decrease
+   if (tmp<-200)
    {
-		tmp=-20;
-	}
+      tmp=-20;
+   }
    else if (tmp<-1)
    {
-		tmp=-1;
-	}
-   
-	dac_val+=tmp;
-   
-	if (dac_val>0xFFF)
+      tmp=-1;
+   }
+   dac_val+=tmp;
+   if (dac_val>0xFFF)
    {
-		dac_val=0xFFF; //max, 12bit
-	}
-	if (dac_val<400){  // the output is zero below 400 due to transistor threshold
-		dac_val=400;
-	}
-	dac(dac_val);
-   
+      dac_val=0xFFF; //max, 12bit
+   }
+   if (dac_val<400){  // the output is zero below 400 due to transistor threshold
+      dac_val=400;
+   }
+   dac(dac_val);
 }
 /* the following function will be called when analog conversion is done.
  * It will be called every 13th cycle of the converson clock. At 8Mhz
@@ -230,7 +215,7 @@ ISR(ADC_vect)
    if (channel==1) // Spannung messen
    {
  //     LEDON1;
-      STROMEND;
+      
       raw_analog_u_result[chpos]=currentadc;
       //
       // we do 4 bit oversampling to get 11bit ADC resolution
@@ -248,7 +233,7 @@ ISR(ADC_vect)
    else // channel==0, Strom messen
    {
       //LEDON0;
-      STROMSTART;
+      ;
       analog_result[0]=currentadc; // 10bit
       //LEDOFF0;
    }
